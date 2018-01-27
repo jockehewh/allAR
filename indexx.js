@@ -1,5 +1,6 @@
 var aCamera = document.querySelector('a-camera');
 var aSky = document.querySelector('a-videosphere');
+var assetVideo = document.querySelector('#assetVideo');
 document.body.onload = function() {
     if(!navigator.getUserMedia){
         console.log('userMedia not supported')
@@ -7,6 +8,7 @@ document.body.onload = function() {
         navigator.getUserMedia({video:{facingMode: "environement", aspectRatio: 4/3}, audio:false}, function(s){
             var newSky = URL.createObjectURL(s);
             aSky.setAttribute('src', newSky);
+            assetVideo.setAttribute('src', newSky)
             document.querySelector('a-camera').setAttribute('rotation', {y:90})
             s.onload = (function(){
                 var aCamera = document.querySelector('a-camera');
@@ -18,19 +20,23 @@ document.body.onload = function() {
                 phantom.setAttribute('width', cvCompute.getAttribute('width'))
                 shadow.setAttribute('height', cvCompute.getAttribute('height'))
                 shadow.setAttribute('width', cvCompute.getAttribute('width'))
+                assetVideo.setAttribute('height', cvCompute.getAttribute('height'))
+                assetVideo.setAttribute('width', cvCompute.getAttribute('width'))
                 var context = phantom.getContext('2d');
                 const height = phantom.height
                 const width = phantom.width
                 var src = new cv.Mat(height, width, cv.CV_8UC4);
                 var dst = new cv.Mat(height, width, cv.CV_8UC4);
                 var gray = new cv.Mat();
+                let cap = new cv.VideoCapture(assetVideo);
                 var faces = new cv.RectVector();
                 var classifier = new cv.CascadeClassifier();
                 classifier.load('haarcascade_frontalface_alt.xml');
                 setInterval(function(){
-                    context.drawImage(cvCompute, 0, 0, width, height);
-                    src.data.set(context.getImageData(0, 0, width, height).data);
-                   
+                   // context.drawImage(cvCompute, 0, 0, width, height);
+                   // src.data.set(context.getImageData(0, 0, width, height).data);
+                    cap.read(src);
+                    src.copyTo(dst);
                     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
                     // detect faces.
                     classifier.detectMultiScale(gray, faces, 1.1, 3, 0);
